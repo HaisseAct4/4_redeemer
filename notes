@@ -1,0 +1,61 @@
+# HTB Starting Point: Redeemer
+
+**Topic:** Unauthenticated database access (Redis)
+**Tools:** redis-cli
+**Difficulty:** Very Easy
+
+## Summary
+The target exposed a Redis database server that accepted connections
+without a password, letting anyone who could reach it browse and read the
+stored data.
+
+## Reconnaissance
+Redis is an in-memory database that stores data as key-value pairs. It
+listens on TCP port 6379 by default. This was my first time working with
+Redis, so I used `redis-cli` to connect and explore it.
+
+## Exploitation
+1. Connected to the server without supplying any credentials:
+
+       redis-cli -h [TARGET_IP]
+
+2. Ran `INFO` to view server details and statistics. `INFO clients` shows
+   client statistics, including how many clients are connected, and
+   `CLIENT LIST` shows the connected clients.
+3. Checked which database to look in with `SELECT 0`, which changes the
+   selected database (it does not move any data), and `DBSIZE`, which
+   shows how many keys it holds.
+4. Listed the keys with `KEYS *` and read the value of the relevant key
+   with `GET <key>`. (Flag omitted.)
+5. Disconnected with `quit`.
+
+## Impact
+Anyone able to reach port 6379 could read everything stored in the
+database. Redis often holds sensitive data such as session tokens, cached
+user information, and application secrets. An unauthenticated Redis server
+can also let an attacker modify or delete data, and in some configurations
+it can be abused for further compromise of the host.
+
+## Remediation
+- Require authentication (`requirepass` or ACL users) with strong
+  passwords.
+- Bind Redis to localhost or an internal interface instead of exposing it
+  to untrusted networks.
+- Block port 6379 at the firewall from anything that doesn't need access.
+- Keep protected mode enabled and restrict dangerous commands where
+  possible.
+
+## Challenge and improvement
+The commands were unfamiliar, so I researched examples to figure out how
+to find keys and read their contents. The workflow that worked: connect,
+select a database, list its keys, and retrieve the relevant values.
+
+## What I learned
+- Redis stores data as key-value pairs, and `redis-cli` is the standard
+  client for exploring it.
+- `INFO`, `DBSIZE`, `KEYS *`, and `GET <key>` give a quick picture of what
+  a server holds.
+- `KEYS *` lists everything in the selected database, which is fine in a
+  lab but can slow down a large production server.
+- I need more practice remembering the commands and understanding their
+  output.
