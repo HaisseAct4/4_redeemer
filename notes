@@ -10,9 +10,14 @@ without a password, letting anyone who could reach it browse and read the
 stored data.
 
 ## Reconnaissance
-Redis is an in-memory database that stores data as key-value pairs. It
-listens on TCP port 6379 by default. This was my first time working with
-Redis, so I used `redis-cli` to connect and explore it.
+I ran a full port scan to find every open port, since the default scan only
+checks the 1,000 most common ones:
+
+    nmap -p- [TARGET_IP]
+
+The scan showed TCP port 6379 open, the default port for Redis. Redis is an
+in-memory database that stores data as key-value pairs. This was my first
+time working with it, so I used `redis-cli` to connect and explore it.
 
 ## Exploitation
 1. Connected to the server without supplying any credentials:
